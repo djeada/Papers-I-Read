@@ -6,4 +6,98 @@
 
 ### Notes
 
-TODO
+- A large-scale distributed systems tracing infrastructure was developed by Google, named Dapper.
+- The technical report was published in April 2010.
+- Modern Internet services are often implemented as complex, large-scale distributed systems.
+- These systems consist of software modules developed by different teams, possibly in different programming languages, and may span thousands of machines across multiple facilities.
+- Tools that aid in understanding system behavior and reasoning about performance issues are invaluable in such environments.
+- Designed with goals of low overhead, application-level transparency, and ubiquitous deployment on a large-scale system.
+- Sampling and restriction of instrumentation to a small number of common libraries were key design choices.
+- Shares conceptual similarities with other tracing systems like Magpie and X-Trace.
+- The main goal of the report is to share the experience of building, deploying, and using the system over two years.
+- Evolved from a self-contained tracing tool into a monitoring platform enabling the creation of various tools.
+- Success is measured by its usefulness to developer and operations teams.
+- Deployment provided lessons about design decisions and practical usefulness.
+- Enabled development of many different analysis tools beyond its original design.
+- Incorporates new contributions in distributed tracing, such as effective sampling techniques.
+- Sampling is necessary for low overhead, especially in highly optimized web services.
+- A sample rate of one out of thousands of requests provides sufficient information for many uses.
+- Achieved application-level transparency by restricting instrumentation to common threading, control flow, and RPC library code.
+- Includes code to collect traces, tools to visualize them, and libraries and APIs for trace analysis.
+- Can identify performance anomalies to focus investigations, allowing other tools to be applied locally.
+- Models trace trees using trees, spans, and annotations.
+- Spans represent units of work with start and end times, RPC timing data, and annotations.
+- Uses a small set of common libraries for instrumentation, achieving near-zero intervention from developers.
+- Allows asynchronous control paths to be traced transparently.
+- Trace data is language-independent, combining data from processes written in C++ and Java.
+- Supports timestamped annotations defined via a simple API.
+- Enforces a configurable upper-bound on total annotation volume per span.
+- Supports key-value annotations for maintaining counters, logging binary messages, and transporting user-defined data.
+- Utilizes adaptive sampling to control overhead by recording only a fraction of all traces.
+- Trace collection pipeline consists of three stages: writing to local log files, pulling by daemons, and writing to regional Bigtable repositories.
+- Median latency for trace data collection is less than 15 seconds.
+- Provides an API called the Dapper Depot API (DAPI) for accessing trace data by trace ID, bulk access via MapReduce, and indexed access by service name, host machine, and timestamp.
+- Features a web-based user interface that allows users to describe services, time windows, and metrics for trace analysis.
+- Approximately 750-1000 distinct users utilize the user interface weekly within Google.
+- Employed for various use cases including development, debugging, and performance monitoring.
+- Maintains low overhead, with span creation taking 176-204 nanoseconds and annotations taking 9-40 nanoseconds.
+- Daemon's CPU usage is minimal, never exceeding 0.3% of one CPU core during collection.
+- Trace sampling is essential to avoid noticeable latency degradation in production workloads.
+- Adaptive sampling adjusts the sampling rate based on workload traffic to maintain low overhead.
+- Traces can be enriched with application-specific annotations to provide more context.
+- Integrated into other monitoring systems through trace IDs.
+- Supports fault discovery and performance optimization.
+- Enables inferring service dependencies and network usage patterns.
+- Complements other tools by focusing on system-wide data rather than replacing them.
+- Sampling mechanism ensures high-volume services still have adequate trace data.
+- Capable of grouping and aggregating trace performance information across various clients of a shared service.
+- Trace data collection does not log payload data to maintain security and privacy.
+- Trace data is accessible quickly, ideally within a minute after generation.
+- Utilizes a trace context attached to thread-local storage for tracing control paths.
+- Instrumentation is stable and robust, with minimal lines of code.
+- Supports near-real-time data access through the user interface.
+- Initial deployment involved turning tracing off by default until stability and low overhead were ensured.
+- Supports coalescing of trace spans to avoid attributing large units of work to single requests.
+- Used by various teams within Google, including the Ads Review team, for performance improvement.
+- Aids in identifying and fixing unnecessary serial requests in services.
+- Assists in debugging long tail latency issues in complex systems.
+- Trace data is stored in Bigtable repositories.
+- Improved latency numbers by two orders of magnitude for the Ads Review team.
+- Allows interactive inspection of specific traces for root cause analysis.
+- Employs hierarchical critical path inference to diagnose performance problems.
+- Trace collection does not interfere significantly with the foreground workload.
+- Supports out-of-band trace collection to avoid network dynamics interference.
+- Enables flexible sampling configurations to control data write rates to repositories.
+- Facilitates creation of continuously-updating network usage dashboards.
+- Supports layered and shared storage systems performance analysis.
+- Effective in isolating performance bottlenecks but may require additional tools for root cause identification.
+- Provides security benefits by ensuring compliance with security policies through trace data.
+- Design allows minimal manual intervention when deploying on diverse systems.
+- Deployment environment benefits from homogeneity, facilitating application-level transparency.
+- Capable of aggregating trace data across multiple hosts and programming languages.
+- Supports both root spans and child spans to model distributed traces.
+- Handles clock skew by using causal relationships between client and server RPC timestamps.
+- Restricts instrumentation to common libraries to maintain application-level transparency.
+- Instrumentation includes span creation, sampling, and logging to local disks.
+- Core instrumentation implemented with less than 1000 lines of C++ and under 800 lines of Java code.
+- Key-value annotations add an additional 500 lines of code.
+- Daemon process has low CPU and memory usage during trace collection.
+- Trace sampling ensures trace data remains manageable and storage costs are controlled.
+- Supports both persistent online web applications and on-demand analysis tools.
+- User interface allows visualization and inspection of distributed traces interactively.
+- Facilitates real-time monitoring by communicating directly with daemons on production machines.
+- Integrated with exception monitoring systems to link exception reports with distributed traces.
+- Assists in inferring service dependencies automatically through trace annotations and the DAPI.
+- Enables application-level analysis of inter-cluster network activity.
+- Supports performance analysis for both on-line serving systems and off-line data-intensive workloads.
+- Includes mechanisms to prevent accidental overzealous logging through configurable annotation volume limits.
+- Trace data collection is performed out-of-band to avoid affecting application network dynamics.
+- Additional sampling during collection helps manage the total size of trace data in central repositories.
+- Supports both simple textual annotations and complex key-value annotations for enriched trace data.
+- Allows developers to build and run one-off analytical tools using the DAPI framework.
+- Deployment includes a trace collection daemon that is part of Google's basic machine image.
+- Adaptive sampling ensures low traffic workloads increase their sampling rate automatically.
+- Enables creation of network usage dashboards showing active application-level endpoints.
+- Supports hierarchical critical path structures to diagnose performance issues.
+- Trace inspection view includes a global timeline and ability to expand and collapse trace subtrees.
+- User interface can communicate directly with daemons for real-time data access.
