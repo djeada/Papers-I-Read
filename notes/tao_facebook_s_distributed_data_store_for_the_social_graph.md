@@ -6,4 +6,77 @@
 
 ### Notes
 
-TODO
+- TAO is a geographically distributed data store.
+- Provides efficient and timely access to Facebook’s social graph.
+- Designed to handle Facebook’s demanding workload using a fixed set of queries.
+- Replaces memcache for many data types that fit its model.
+- Deployed at Facebook, running on thousands of machines.
+- Manages access to many petabytes of data.
+- Capable of processing a billion reads and millions of writes each second.
+- Utilizes a simple data model and API tailored for serving the social graph.
+- Models people, actions, and relationships as nodes and edges in a graph.
+- Objects are typed nodes identified by unique 64-bit integers.
+- Associations are typed directed edges identified by (id1, atype, id2).
+- Each association includes a 32-bit time field.
+- Objects and associations can contain key-value data pairs.
+- Per-type schemas define possible keys, value types, and default values.
+- Actions can be encoded as either objects or associations.
+- Supports bidirectional associations with inverse types.
+- TAO’s object API allows allocation, retrieval, update, and deletion of objects.
+- TAO’s association API supports adding, deleting, and changing association types.
+- Provides association query APIs: assoc get, assoc count, assoc range, assoc time range.
+- Enforces per-atype upper limits on association query results.
+- TAO architecture consists of two caching layers and a storage layer.
+- Storage layer uses MySQL, divided into logical shards.
+- Each shard is assigned to a logical database with separate tables for objects and associations.
+- Caching layer consists of multiple cache servers forming a tier.
+- Clients issue requests directly to appropriate cache servers.
+- In-memory cache stores objects, association lists, and association counts.
+- Uses least recently used (LRU) policy for cache eviction.
+- Implements shard cloning to balance load among cache servers.
+- High-degree objects have specialized query optimizations.
+- Two-level caching hierarchy: leader tier and follower tiers.
+- Leaders handle reads and writes, maintaining consistency within shards.
+- Followers forward read misses and writes to leaders.
+- Scales geographically with master and slave regions.
+- Master region handles write operations and propagates updates to slave regions.
+- Ensures read latency is independent of inter-region latency.
+- Provides eventual consistency with replication lag typically under one second.
+- Handles failover by promoting slave databases to master when necessary.
+- Routes around failed servers to maintain availability and performance.
+- Uses aggressive network timeouts for failure detection.
+- Maintains per-destination timeouts and marks hosts as down after consecutive failures.
+- TAO client configured with primary and backup follower tiers for redundancy.
+- Supports multi-tenancy, allowing multiple clients to share the same TAO deployment.
+- Deployed across multiple geographic regions with clustered data centers.
+- TAO processes a billion reads and millions of writes per second in production.
+- Achieves a 96.4% read hit rate in production workloads.
+- Majority of association reads result in empty association lists.
+- Handles high query rates with long-tailed distributions for query frequency, node connectivity, and data size.
+- Provides low query failure rate: 4.9 × 10⁻⁶ over 90 days.
+- Read latencies: average in low milliseconds for cache hits, higher for cache misses.
+- Write latencies vary based on regional proximity, averaging 12.1 ms locally and 74.4 ms remotely.
+- Replication lag: less than 1 second for 85% of operations, less than 3 seconds for 99%, and less than 10 seconds for 99.8%.
+- Leader failures are managed by rerouting requests to replacement leaders.
+- Invalidation and refill messages ensure eventual consistency across followers.
+- TAO optimizes memory management with a customized memcached implementation.
+- Uses slab allocator, thread-safe hash tables, and dynamic slab rebalancer for cache management.
+- Stores small fixed-size items in direct-mapped associative caches for memory efficiency.
+- Implements consistent hashing for shard-to-cache server mapping.
+- Addresses load imbalance with shard cloning and client-side caching for hot items.
+- Handles high-degree objects by limiting cached association lists and optimizing query directions.
+- Ensures scalability with a distributed architecture and separation of cache and storage layers.
+- Provides robust access control with graph-based authorization influenced by Zanzibar.
+- Supports fine-grained permissions and customizable access policies.
+- Facilitates real-time updates to access policies.
+- Enables seamless integration with different Facebook services.
+- Offers audit and monitoring capabilities for access control activities.
+- Supports multi-tenancy for managing permissions across different organizations.
+- Optimizes performance for large-scale authorization queries.
+- Enhances security by centralizing authorization logic and policies.
+- TAO is the first system to combine relaxed consistency, graph semantics, and read optimization at large scale.
+- Compared to systems like Megastore, Dynamo, and Neo4j, TAO handles much higher request volumes.
+- TAO’s design favors read performance and throughput over strong consistency.
+- Separation of cache and persistent store allows independent scaling and operation.
+- TAO’s restricted data and consistency model is usable for application developers.
+- Ensures high availability and efficiency in serving Facebook’s social graph.
