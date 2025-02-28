@@ -8,67 +8,50 @@
 
 #### Denoising Diffusion Probabilistic Models (DDPMs)
 
-Denoising Diffusion Probabilistic Models (DDPMs) learn to synthesize a sample \( \mathbf{z}_0 \) from a data distribution \( q(\mathbf{z}_0) \) by progressively denoising a sample \( \mathbf{z}_R \) drawn from an isotropic Gaussian \( \mathcal{N}(\mathbf{0}, \mathbf{I}) \). This denoising process reverses a forward (diffusion) process where Gaussian noise is progressively added to data samples \( \mathbf{z}_0 \).
+Denoising Diffusion Probabilistic Models (DDPMs) learn to synthesize a sample z_0 from a data distribution q(z_0) by progressively denoising a sample z_R drawn from an isotropic Gaussian N(0, I). This denoising process reverses a forward (diffusion) process where Gaussian noise is progressively added to data samples z_0.
 
-$$
-\text{Forward (diffusion) process:} \quad
-q(\mathbf{z}_r \mid \mathbf{z}_{r-1}) 
-= \mathcal{N}\bigl(\mathbf{z}_r; \sqrt{1-\beta_r}\,\mathbf{z}_{r-1},\,\beta_r \mathbf{I}\bigr)
-$$
+Forward (diffusion) process:
 
-with 
-\[
-\beta_r \in (0, 1), 
-\quad 
-\alpha_r := 1-\beta_r, 
-\quad 
-\bar{\alpha}_r := \prod_{s=1}^r \alpha_s.
-\]
+$$q(z_r \mid z_{r-1}) = N\bigl(z_r; \sqrt{1-\beta_r},z_{r-1},,\beta_r I\bigr)$$
 
-A convenient shortcut (Ho et al., 2020) allows sampling \(\mathbf{z}_r\) at step \(r\) directly from \(\mathbf{z}_0\):
+where
 
-$$
-\mathbf{z}_r 
-= \sqrt{\bar{\alpha}_r}\,\mathbf{z}_0 + \sqrt{1 - \bar{\alpha}_r}\,\boldsymbol{\epsilon}, 
-\quad 
-\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}).
-$$
+$$\beta_r \in (0, 1),\quad 
+\alpha_r = 1 - \beta_r,\quad 
+\bar{\alpha}_r = \prod_{s=1}^{r} \alpha_s$$
 
-When \(R\) is large and \(\beta_r\) is chosen appropriately, \(\mathbf{z}_R\) approaches a Gaussian distribution. The reverse (or denoising) process approximately inverts the forward one via learned Gaussian transitions:
+A convenient shortcut (Ho et al., 2020) allows sampling z_r at step r directly from z_0:
+$$z_r = \sqrt{\bar{\alpha}_r},z_0 + \sqrt{1 - \bar{\alpha}_r},\epsilon,\quad
+\epsilon \sim N(0, I)$$
 
-$$
-p_{\theta}(\mathbf{z}_{r-1} \mid \mathbf{z}_{r})
-= \mathcal{N}\bigl(\mathbf{z}_{r-1};\,\boldsymbol{\mu}_\theta(\mathbf{z}_r,r),\,\boldsymbol{\Sigma}_\theta(\mathbf{z}_r,r)\bigr).
-$$
+When R is large and $\beta_r$ is chosen appropriately, z_R approaches a Gaussian distribution. The reverse (denoising) process approximately inverts the forward one via learned Gaussian transitions:
 
-A common parameterization (Ho et al., 2020; Nichol & Dhariwal, 2021) sets the mean and diagonal covariance in terms of \(\widehat{\boldsymbol{\epsilon}}\) and \(v_\theta\):
+$$p_{\theta}(z_{r-1} \mid z_{r})
+= N\bigl(z_{r-1};\ \mu_{\theta}(z_r, r),\ \Sigma_{\theta}(z_r, r)\bigr)$$
 
-$$
-\boldsymbol{\mu}_\theta(\mathbf{z}_r,r)
+A common parameterization (Ho et al., 2020; Nichol & Dhariwal, 2021) sets the mean and diagonal covariance in terms of a network output for epsilon-hat and v:
+
+$$\mu_{\theta}(z_r, r)
 = \frac{1}{\sqrt{\alpha_r}}
-\Bigl(\mathbf{z}_r - \beta_r \,\frac{\widehat{\boldsymbol{\epsilon}}(\mathbf{z}_r,r)}{\sqrt{1-\bar{\alpha}_r}}\Bigr),
-$$
+\Bigl(
+z_r - \beta_r,\frac{\widehat{\epsilon}(z_r, r)}{\sqrt{1 - \bar{\alpha}_r}}
+\Bigr)$$
 
-$$
-\boldsymbol{\Sigma}_\theta(\mathbf{z}_r,r)
-= \exp\Bigl[v_{\theta}\,\log \beta_r + (1-v_{\theta})\,\log \widetilde{\beta}_r\Bigr],
-$$
+$$\Sigma_{\theta}(z_r, r)
+= \exp\bigl[
+v_{\theta},\log(\beta_r)+(1-v_{\theta}),\log(\tilde{\beta}_r)
+\bigr]$$
 
-where \(\widetilde{\beta}_r := \frac{(1-\bar{\alpha}_{r-1})}{(1-\bar{\alpha}_r)}\beta_r\), and the network outputs \(\widehat{\boldsymbol{\epsilon}} \in \mathbb{R}^{n \times F}\) and \(v_{\theta}\in \mathbb{R}^{n \times F}\).
+where $\tilde{\beta}_r = \frac{(1-\bar{\alpha}_{r-1})}{(1-\bar{\alpha}_r)},\beta_r$. The network outputs $\widehat{\epsilon}\in \mathbb{R}^{n\times F}$ and $v_{\theta}\in \mathbb{R}^{n\times F}$.
 
-The loss function is given by
+The loss function is
 
-$$
-\mathcal{L}
-= \mathcal{L}_{\text{simple}} + \lambda_{\text{vlb}}\mathcal{L}_{\text{vlb}},
-\quad
-\text{where}
-\quad
-\mathcal{L}_{\text{simple}}
-= \mathbb{E}_{r,\mathbf{z}_0,\boldsymbol{\epsilon}}\bigl[\|\boldsymbol{\epsilon} - \widehat{\boldsymbol{\epsilon}}(\mathbf{z}_r,r)\|\bigr],
-$$
+$$\mathcal{L} = \mathcal{L}_{\text{simple}} + \lambda_{\text{vlb}}\mathcal{L}_{\text{vlb}},\quad
+\text{where}\quad
+\mathcal{L}_{\text{simple}} =
+\mathbb{E}_{r,,z_0,,\epsilon}\bigl[\|\epsilon - \widehat{\epsilon}(z_r,r)\|\bigr]$$
 
-with \(\boldsymbol{\epsilon}\sim \mathcal{N}(\mathbf{0},\mathbf{I})\) and \(\mathbf{z}_r\) obtained via the forward process. The term \(\mathcal{L}_{\text{vlb}}\) is a variational lower bound that ensures proper weighting of entropy in the reverse denoising steps (Nichol & Dhariwal, 2021).
+with $\epsilon \sim N(0,I)$ and z_r obtained via the forward process. The term $\mathcal{L}_{\text{vlb}}$ is a variational lower bound that makes sure proper weighting of entropy in the reverse denoising steps (Nichol & Dhariwal, 2021).
 
 #### Additional Model Details
 
