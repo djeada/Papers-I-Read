@@ -3,7 +3,7 @@
 Welcome to **Papers-I-Read**, a personal repository for tracking, summarizing, and learning from scientific papers across fields like **Science**, **Machine Learning**, and **Mathematics**. Here you'll find:
 - Concise notes and summaries for each paper
 - Guides for reading, understanding, and writing research papers
-- Key takeaways and personal reflections
+- Takeaways and personal reflections
 
 ## 📁 Repository Structure
 
